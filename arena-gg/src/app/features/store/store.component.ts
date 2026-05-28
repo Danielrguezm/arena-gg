@@ -48,7 +48,7 @@ import { RouterLink } from '@angular/router';
         </div>
         <div style="display:flex;align-items:center;gap:8px">
           <span style="color:var(--muted);font-size:12px">Ordenar</span>
-          <select (change)="sortBy.set(($event.target as HTMLSelectElement).value)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:var(--font-body);font-size:12.5px;cursor:pointer">
+          <select (change)="sortBy.set(asSelect($event).value)" style="background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:7px 10px;color:var(--text);font-family:var(--font-body);font-size:12.5px;cursor:pointer">
             <option value="featured">Destacados</option>
             <option value="cheap">Más baratos</option>
             <option value="expensive">Más caros</option>
@@ -101,6 +101,8 @@ import { RouterLink } from '@angular/router';
 export class StoreComponent {
   readonly auth  = inject(AuthService);
   readonly toast = inject(ToastService);
+
+  asSelect = (e: Event) => e.target as HTMLSelectElement;
 
   readonly cat    = signal('all');
   readonly sortBy = signal('featured');

@@ -42,7 +42,7 @@ import { Tournament } from '../../../data/models';
         <!-- Search -->
         <div style="display:flex;align-items:center;gap:8px;background:var(--bg-2);border:1px solid var(--border);border-radius:10px;padding:9px 12px;min-width:220px">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted)"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input [value]="query()" (input)="query.set(($event.target as HTMLInputElement).value)" placeholder="Buscar torneo…" style="background:transparent;border:0;outline:0;color:var(--text);font-family:var(--font-body);font-size:13px;width:180px">
+          <input [value]="query()" (input)="query.set(asInput($event).value)" placeholder="Buscar torneo…" style="background:transparent;border:0;outline:0;color:var(--text);font-family:var(--font-body);font-size:13px;width:180px">
         </div>
 
         <div style="width:1px;height:28px;background:var(--border)"></div>
@@ -154,6 +154,8 @@ export class TournamentListComponent {
   readonly reg  = inject(RegistrationService);
   readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+
+  asInput = (e: Event) => e.target as HTMLInputElement;
 
   readonly games = GAMES;
   readonly now   = Date.now();
