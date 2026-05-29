@@ -1,14 +1,16 @@
-import { Component, inject } from '@angular/core';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Component, inject, signal, computed } from '@angular/core';
+import { RouterLink, RouterLinkActive, Router } from '@angular/router';
+import { UpperCasePipe, DecimalPipe } from '@angular/common';
 import { AuthService } from '../../core/auth/auth.service';
 import { ThemeService } from '../../core/theme/theme.service';
+import { TournamentAdminService, TournamentDto } from '../../core/tournament-admin/tournament-admin.service';
 import { CoinComponent } from '../../shared/components/coin/coin.component';
 import { FmtNumPipe } from '../../shared/pipes/fmt-num.pipe';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, RouterLinkActive, CoinComponent, FmtNumPipe],
+  imports: [RouterLink, RouterLinkActive, CoinComponent, FmtNumPipe, UpperCasePipe, DecimalPipe],
   template: `
     <header style="position:sticky;top:0;z-index:50;background:color-mix(in oklch, var(--bg) 82%, transparent);backdrop-filter:blur(18px) saturate(140%);border-bottom:1px solid var(--border-soft)">
       <div style="max-width:1320px;margin:0 auto;padding:14px 28px;display:flex;align-items:center;gap:24px">
@@ -36,15 +38,43 @@ import { FmtNumPipe } from '../../shared/pipes/fmt-num.pipe';
           @if (auth.isLoggedIn()) {
             <a routerLink="/profile" routerLinkActive="nav-active" class="nav-item">Perfil</a>
           }
+          @if (auth.isAdmin()) {
+            <a routerLink="/admin" routerLinkActive="nav-active" class="nav-item" style="color:var(--accent)">Admin</a>
+          }
         </nav>
 
         <div style="flex:1"></div>
 
-        <!-- Buscador (decorativo) -->
-        <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;min-width:200px;color:var(--muted)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-          <input placeholder="Buscar torneos…" style="background:transparent;border:0;outline:0;color:var(--text);font-family:var(--font-body);font-size:13px;width:100%">
-          <kbd class="mono" style="font-size:10px;padding:2px 5px;border:1px solid var(--border);border-radius:4px;color:var(--muted)">/</kbd>
+        <!-- Buscador con dropdown -->
+        <div style="position:relative" (mouseleave)="showDropdown.set(false)">
+          <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:8px 12px;min-width:240px;color:var(--muted)">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+            <input #searchInput
+                   placeholder="Buscar torneos…"
+                   (input)="onQuery(searchInput.value)"
+                   (keyup.enter)="search(searchInput.value); showDropdown.set(false)"
+                   (focus)="onQuery(searchInput.value)"
+                   style="background:transparent;border:0;outline:0;color:var(--text);font-family:var(--font-body);font-size:13px;width:100%">
+            <kbd class="mono" style="font-size:10px;padding:2px 5px;border:1px solid var(--border);border-radius:4px;color:var(--muted)">/</kbd>
+          </div>
+
+          <!-- Dropdown -->
+          @if (showDropdown() && suggestions().length > 0) {
+            <div style="position:absolute;top:calc(100% + 6px);left:0;right:0;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;box-shadow:var(--shadow-2);overflow:hidden;z-index:100">
+              @for (t of suggestions(); track t.id) {
+                <div (mousedown)="goTo(t)"
+                     style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;transition:background .1s"
+                     (mouseenter)="asEl($event).style.background='var(--hover)'"
+                     (mouseleave)="asEl($event).style.background='transparent'">
+                  <div>
+                    <div style="font-size:13px;font-weight:600;color:var(--text)">{{ t.name }}</div>
+                    <div style="font-size:11px;color:var(--muted);margin-top:2px">{{ t.gameId | uppercase }} · {{ t.level }}</div>
+                  </div>
+                  <span style="font-size:11px;color:var(--gold);font-family:var(--font-mono);font-weight:700">{{ t.prize | number }} tk</span>
+                </div>
+              }
+            </div>
+          }
         </div>
 
         <!-- Theme toggle -->
@@ -60,16 +90,14 @@ import { FmtNumPipe } from '../../shared/pipes/fmt-num.pipe';
         <!-- Auth area -->
         @if (auth.isLoggedIn()) {
           <div style="display:flex;align-items:center;gap:10px">
-            <!-- Tokens pill -->
             <div id="header-tokens" style="display:flex;align-items:center;gap:8px;padding:8px 12px;border-radius:10px;background:var(--gold-soft);border:1px solid color-mix(in oklch, var(--gold) 30%, transparent)">
               <app-coin [size]="16"/>
               <span class="mono" style="color:var(--gold);font-weight:700;font-size:13.5px">{{ auth.tokens() | fmtNum }}</span>
             </div>
-            <!-- Avatar -->
-            <div style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg, oklch(0.55 0.16 280), oklch(0.40 0.18 320));display:grid;place-items:center;color:white;font-family:var(--font-display);font-weight:700;font-size:13px;border:1px solid var(--border);cursor:pointer;position:relative">
+            <a routerLink="/profile" style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg, oklch(0.55 0.16 280), oklch(0.40 0.18 320));display:grid;place-items:center;color:white;font-family:var(--font-display);font-weight:700;font-size:13px;border:1px solid var(--border);cursor:pointer;position:relative;text-decoration:none">
               {{ auth.user()?.initials }}
               <span style="position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:999px;background:var(--accent);border:2px solid var(--bg)"></span>
-            </div>
+            </a>
           </div>
         } @else {
           <div style="display:flex;gap:8px">
@@ -101,4 +129,38 @@ import { FmtNumPipe } from '../../shared/pipes/fmt-num.pipe';
 export class HeaderComponent {
   readonly auth  = inject(AuthService);
   readonly theme = inject(ThemeService);
+  private readonly router  = inject(Router);
+  private readonly apiSvc  = inject(TournamentAdminService);
+
+  private readonly query       = signal('');
+  readonly showDropdown        = signal(false);
+  private readonly allTournaments = signal<TournamentDto[]>([]);
+
+  readonly suggestions = computed(() => {
+    const q = this.query().toLowerCase().trim();
+    if (!q) return [];
+    return this.allTournaments()
+      .filter(t => t.name.toLowerCase().includes(q))
+      .slice(0, 6);
+  });
+
+  constructor() {
+    this.apiSvc.getAll().subscribe({ next: ts => this.allTournaments.set(ts) });
+  }
+
+  onQuery(q: string) {
+    this.query.set(q);
+    this.showDropdown.set(q.trim().length > 0);
+  }
+
+  search(q: string) {
+    if (q.trim()) this.router.navigate(['/tournaments'], { queryParams: { q: q.trim() } });
+  }
+
+  goTo(t: TournamentDto) {
+    this.showDropdown.set(false);
+    this.router.navigate(['/tournaments', t.id]);
+  }
+
+  asEl(e: Event) { return e.currentTarget as HTMLElement; }
 }

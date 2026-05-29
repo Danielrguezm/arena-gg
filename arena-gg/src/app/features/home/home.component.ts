@@ -1,8 +1,9 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { GAMES, TOURNAMENTS, REWARDS, fmtNum, GAME_BY_ID } from '../../data/mock';
+import { GAMES, REWARDS, fmtNum, GAME_BY_ID } from '../../data/mock';
 import { AuthService } from '../../core/auth/auth.service';
 import { RegistrationService } from '../../core/registration/registration.service';
+import { TournamentAdminService } from '../../core/tournament-admin/tournament-admin.service';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { CoinComponent } from '../../shared/components/coin/coin.component';
 import { EmblemComponent } from '../../shared/components/emblem/emblem.component';
@@ -46,17 +47,18 @@ import { Tournament } from '../../data/models';
           </div>
         </div>
 
-        <div style="position:relative;padding:44px 48px 44px 12px;display:flex;align-items:center">
-          <div [style.background]="'linear-gradient(160deg,' + hero.g.color2 + ' 0%, oklch(0.18 0.014 230) 75%)'"
+        @if (hero(); as h)
+        {<div style="position:relative;padding:44px 48px 44px 12px;display:flex;align-items:center">
+          <div [style.background]="'linear-gradient(160deg,' + h.g.color2 + ' 0%, oklch(0.18 0.014 230) 75%)'"
                style="position:relative;width:100%;min-height:360px;border-radius:var(--radius);border:1px solid var(--border);padding:24px;overflow:hidden;box-shadow:var(--shadow-2)">
-            <div style="position:absolute;right:-40px;top:-40px;opacity:.25;transform:rotate(-12deg)"><app-emblem [game]="hero.t.game" [size]="260"/></div>
+            <div style="position:absolute;right:-40px;top:-40px;opacity:.25;transform:rotate(-12deg)"><app-emblem [game]="h.t.game" [size]="260"/></div>
             <div style="position:relative;display:flex;flex-direction:column;height:100%;gap:16px">
               <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
                 <div style="display:flex;gap:10px;align-items:center">
-                  <app-emblem [game]="hero.t.game" [size]="44" [glow]="true"/>
+                  <app-emblem [game]="h.t.game" [size]="44" [glow]="true"/>
                   <div>
-                    <div class="mono" style="font-size:10px;color:oklch(0.9 0 0 / .7);letter-spacing:.15em">{{ hero.g.name.toUpperCase() }}</div>
-                    <div class="display" style="font-size:20px;font-weight:700;color:white;margin-top:2px">{{ hero.t.name }}</div>
+                    <div class="mono" style="font-size:10px;color:oklch(0.9 0 0 / .7);letter-spacing:.15em">{{ h.g.name.toUpperCase() }}</div>
+                    <div class="display" style="font-size:20px;font-weight:700;color:white;margin-top:2px">{{ h.t.name }}</div>
                   </div>
                 </div>
                 <app-badge tone="gold">DESTACADO</app-badge>
@@ -64,25 +66,25 @@ import { Tournament } from '../../data/models';
               <div style="flex:1"></div>
               <div style="padding:18px 20px;border-radius:14px;background:oklch(0 0 0 / .35);backdrop-filter:blur(10px);border:1px solid oklch(1 0 0 / .08)">
                 <div style="font-size:11px;color:oklch(0.85 0 0 / .65);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px">Premio total</div>
-                <div style="display:flex;align-items:baseline;gap:8px"><app-coin [size]="26"/><span class="mono" style="font-size:40px;font-weight:700;color:var(--gold);line-height:1;letter-spacing:-.03em">{{ hero.t.prize | fmtNum }}</span><span style="color:oklch(0.9 0 0 / .7);font-size:13px;font-weight:600">TOKENS</span></div>
+                <div style="display:flex;align-items:baseline;gap:8px"><app-coin [size]="26"/><span class="mono" style="font-size:40px;font-weight:700;color:var(--gold);line-height:1;letter-spacing:-.03em">{{ h.t.prize | fmtNum }}</span><span style="color:oklch(0.9 0 0 / .7);font-size:13px;font-weight:600">TOKENS</span></div>
               </div>
               <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
                 <div style="padding:10px 12px;border-radius:10px;background:oklch(0 0 0 / .3);border:1px solid oklch(1 0 0 / .06)">
                   <div style="font-size:9.5px;color:oklch(0.85 0 0 / .55);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">Empieza en</div>
-                  <app-countdown [to]="hero.t.startsAt" [compact]="true"/>
+                  <app-countdown [to]="h.t.startsAt" [compact]="true"/>
                 </div>
                 <div style="padding:10px 12px;border-radius:10px;background:oklch(0 0 0 / .3);border:1px solid oklch(1 0 0 / .06)">
                   <div style="font-size:9.5px;color:oklch(0.85 0 0 / .55);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">Cupos</div>
-                  <span class="mono" style="color:white;font-size:16px;font-weight:700">{{ hero.t.entries }}/{{ hero.t.max }}</span>
+                  <span class="mono" style="color:white;font-size:16px;font-weight:700">{{ h.t.entries }}/{{ h.t.max }}</span>
                 </div>
                 <div style="padding:10px 12px;border-radius:10px;background:oklch(0 0 0 / .3);border:1px solid oklch(1 0 0 / .06)">
                   <div style="font-size:9.5px;color:oklch(0.85 0 0 / .55);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px">Formato</div>
-                  <span style="color:white;font-size:12px;font-weight:600">{{ hero.t.format }} · {{ hero.t.mode }}</span>
+                  <span style="color:white;font-size:12px;font-weight:600">{{ h.t.format }} · {{ h.t.mode }}</span>
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        </div>}
       </section>
 
       <!-- LIVE BANNER -->
@@ -126,7 +128,7 @@ import { Tournament } from '../../data/models';
           <a routerLink="/tournaments" class="btn btn-ghost" style="padding:8px 14px;font-size:13px">Ver todos →</a>
         </div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:18px">
-          @for (t of featured; track t.id) {
+          @for (t of featured(); track t.id) {
             <article class="holo-tint" style="position:relative;background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;cursor:pointer;transition:transform .2s,border-color .2s,box-shadow .2s"
                      (mouseenter)="cardHover($event, getGame(t.game).color, true)" (mouseleave)="cardHover($event, getGame(t.game).color, false)"
                      [routerLink]="['/tournaments', t.id]">
@@ -134,7 +136,7 @@ import { Tournament } from '../../data/models';
               <div [style.background]="'linear-gradient(135deg,' + getGame(t.game).color2 + ',oklch(0.18 0.014 230))'"
                    style="position:relative;height:130px;overflow:hidden;border-bottom:1px solid var(--border-soft)">
                 <div aria-hidden style="position:absolute;inset:0;opacity:.35;background-image:radial-gradient(oklch(1 0 0 / .12) 1px, transparent 1px);background-size:16px 16px"></div>
-                <div style="position:absolute;right:-16px;top:-16px;opacity:.5;transform:rotate(-8deg)"><app-emblem [game]="t.game" [size]="140"/></div>
+                <div style="position:absolute;right:-16px;top:-16px;opacity:.7;transform:rotate(-8deg)"><app-emblem [game]="t.game" [size]="200"/></div>
                 <div style="position:absolute;top:12px;left:14px;display:flex;gap:6px">
                   <app-badge [tone]="t.fee === 0 ? 'emerald' : 'default'">{{ t.fee === 0 ? 'GRATIS' : getGame(t.game).short }}</app-badge>
                   @if (t.featured) { <app-badge tone="gold">DESTACADO</app-badge> }
@@ -205,19 +207,44 @@ import { Tournament } from '../../data/models';
     </div>
   `,
 })
-export class HomeComponent {
-  readonly auth = inject(AuthService);
-  readonly reg  = inject(RegistrationService);
+export class HomeComponent implements OnInit {
+  readonly auth    = inject(AuthService);
+  readonly reg     = inject(RegistrationService);
+  private readonly apiSvc = inject(TournamentAdminService);
 
   readonly games   = GAMES;
-  readonly featured = TOURNAMENTS.filter(t => t.featured).slice(0, 3);
-  readonly rewards  = REWARDS;
-  readonly fmtNum   = fmtNum;
+  readonly rewards = REWARDS;
+  readonly fmtNum  = fmtNum;
 
-  readonly hero = (() => {
-    const t = TOURNAMENTS.find(x => x.id === 't05') ?? TOURNAMENTS[0];
+  private readonly allTournaments = signal<Tournament[]>([]);
+
+  readonly featured = computed(() => this.allTournaments().filter(t => t.featured).slice(0, 3));
+
+  readonly hero = computed(() => {
+    const list = this.allTournaments();
+    const t = list.find(x => x.featured) ?? list[0];
+    if (!t) return null;
     return { t, g: GAME_BY_ID[t.game] };
-  })();
+  });
+
+  ngOnInit() {
+    this.apiSvc.getAll().subscribe({
+      next: ts => this.allTournaments.set(ts.map(t => ({
+        id: t.id!,
+        game: t.gameId,
+        name: t.name,
+        prize: t.prize,
+        entries: 0,
+        max: t.maxEntries,
+        format: t.format,
+        mode: t.mode,
+        level: (t.level ?? 'Casual') as Tournament['level'],
+        startsAt: t.startsAt ? new Date(t.startsAt).getTime() : Date.now(),
+        fee: t.fee,
+        featured: t.featured,
+      }))),
+    });
+  }
 
   readonly tickerItems = [
     'FNX vs DRAGON COILS — CS2 Smoke & Mirrors · MAPA 2',
@@ -231,6 +258,7 @@ export class HomeComponent {
   ];
 
   getGame(id: string) { return GAME_BY_ID[id]; }
+  heroColor() { return this.hero()?.g?.color2 ?? 'oklch(0.18 0.014 230)'; }
 
   cardHover(e: MouseEvent, color: string, enter: boolean) {
     const el = e.currentTarget as HTMLElement;

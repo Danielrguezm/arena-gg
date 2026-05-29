@@ -1,8 +1,10 @@
-import { Component, inject, input, computed } from '@angular/core';
+import { Component, inject, input, computed, signal, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { TOURNAMENTS, fmtNum, GAME_BY_ID } from '../../../data/mock';
+import { fmtNum, GAME_BY_ID } from '../../../data/mock';
 import { RegistrationService } from '../../../core/registration/registration.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { TournamentAdminService } from '../../../core/tournament-admin/tournament-admin.service';
+import { Tournament } from '../../../data/models';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { CoinComponent } from '../../../shared/components/coin/coin.component';
 import { EmblemComponent } from '../../../shared/components/emblem/emblem.component';
@@ -80,14 +82,15 @@ import { FmtNumPipe } from '../../../shared/pipes/fmt-num.pipe';
                     @for (match of round; track $index) {
                       <div [style.border-color]="match.status === 'live' ? 'var(--danger)' : 'var(--border-soft)'"
                            [style.box-shadow]="match.status === 'live' ? '0 0 0 1px oklch(0.68 0.21 25 / .25), 0 0 18px oklch(0.68 0.21 25 / .20)' : 'none'"
-                           style="background:var(--bg-2);border:1px solid;border-radius:10px;overflow:hidden;position:relative">
+                           style="background:var(--bg-2);border:1px solid;border-radius:10px;position:relative">
                         @if (match.status === 'live') {
-                          <div style="position:absolute;top:-8px;left:10px"><app-badge tone="live">EN VIVO</app-badge></div>
+                          <div style="position:absolute;top:6px;left:10px;z-index:1"><app-badge tone="live">EN VIVO</app-badge></div>
                         }
                         @for (row of [0,1]; track row) {
                           <div [style.border-top]="row === 1 ? '1px solid var(--border-soft)' : 'none'"
                                [style.background]="(row === 0 ? match.aWon : match.bWon) ? 'var(--accent-soft)' : 'transparent'"
-                               style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px">
+                               [style.margin-top]="row === 0 && match.status === 'live' ? '28px' : '0'"
+                               style="display:flex;justify-content:space-between;align-items:center;padding:9px 10px;border-radius:inherit">
                             <span [style.color]="(row === 0 ? match.a : match.b) === null ? 'var(--dim)' : ((row === 0 ? match.aWon : match.bWon) ? 'var(--accent)' : 'var(--text-2)')"
                                   [style.font-weight]="(row === 0 ? match.aWon : match.bWon) ? '700' : '500'"
                                   style="font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:140px">
@@ -196,26 +199,49 @@ import { FmtNumPipe } from '../../../shared/pipes/fmt-num.pipe';
     </div>
   `,
 })
-export class TournamentDetailComponent {
-  readonly reg  = inject(RegistrationService);
-  readonly auth = inject(AuthService);
-  private readonly router = inject(Router);
+export class TournamentDetailComponent implements OnInit {
+  readonly reg    = inject(RegistrationService);
+  readonly auth   = inject(AuthService);
+  private readonly router  = inject(Router);
+  private readonly apiSvc  = inject(TournamentAdminService);
 
   id = input<string>('');
 
-  readonly tournament = computed(() => TOURNAMENTS.find(t => t.id === this.id()) ?? null);
-  readonly game       = computed(() => GAME_BY_ID[this.tournament()?.game ?? ''] ?? GAME_BY_ID['valo']);
+  private readonly _tournament = signal<Tournament | null>(null);
+  readonly tournament = computed(() => this._tournament());
+  readonly game       = computed(() => GAME_BY_ID[this._tournament()?.game ?? ''] ?? GAME_BY_ID['valo']);
+
+  ngOnInit() {
+    this.apiSvc.getById(this.id()).subscribe({
+      next: dto => this._tournament.set({
+        id: dto.id!,
+        game: dto.gameId,
+        name: dto.name,
+        prize: dto.prize,
+        entries: 0,
+        max: dto.maxEntries,
+        format: dto.format,
+        mode: dto.mode,
+        level: (dto.level ?? 'Casual') as Tournament['level'],
+        startsAt: dto.startsAt ? new Date(dto.startsAt).getTime() : Date.now(),
+        fee: dto.fee,
+        featured: dto.featured,
+      }),
+      error: () => this._tournament.set(null),
+    });
+  }
+
 
   readonly bracket = [
     [
-      { a: 'NUEVOS LOBOS', b: 'FNX',         aw: 2, bw: 1, aWon: true,  bWon: false, status: 'done' },
-      { a: 'DRAGON COILS', b: 'BLITZ',        aw: 0, bw: 2, aWon: false, bWon: true,  status: 'done' },
+      { a: 'NUEVOS LOBOS', b: 'FNX',         aw: 2,    bw: 1,    aWon: true,  bWon: false, status: 'done' },
+      { a: 'DRAGON COILS', b: 'BLITZ',        aw: 0,    bw: 2,    aWon: false, bWon: true,  status: 'done' },
       { a: 'SOLARIS',      b: 'ZNTRX',        aw: null, bw: null, aWon: false, bWon: false, status: 'live' },
       { a: 'HYDRA',        b: 'KILO9',        aw: null, bw: null, aWon: false, bWon: false, status: 'soon' },
     ],
     [
-      { a: 'NUEVOS LOBOS', b: 'BLITZ',        aw: null, bw: null, aWon: false, bWon: false, status: 'soon' },
-      { a: null,           b: null,           aw: null, bw: null, aWon: false, bWon: false, status: 'tbd'  },
+      { a: 'NUEVOS LOBOS', b: 'BLITZ', aw: null, bw: null, aWon: false, bWon: false, status: 'soon' },
+      { a: null,           b: null,    aw: null, bw: null, aWon: false, bWon: false, status: 'tbd'  },
     ],
     [
       { a: null, b: null, aw: null, bw: null, aWon: false, bWon: false, status: 'tbd' },

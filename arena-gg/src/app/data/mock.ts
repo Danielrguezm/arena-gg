@@ -1,12 +1,12 @@
 import { Game, Tournament, StoreItem, Reward } from './models';
 
 export const GAMES: Game[] = [
-  { id: 'lol',  name: 'League of Legends', short: 'LoL', tag: 'MOBA',          hue: 195, color: 'oklch(0.72 0.16 195)', color2: 'oklch(0.52 0.18 235)', activePlayers: 8742, emblem: 'lol'  },
-  { id: 'cs2',  name: 'Counter-Strike 2',  short: 'CS2', tag: 'FPS Táctico',   hue: 32,  color: 'oklch(0.78 0.16 65)',  color2: 'oklch(0.55 0.18 35)',  activePlayers: 6210, emblem: 'cs2'  },
-  { id: 'valo', name: 'Valorant',           short: 'VAL', tag: 'FPS Táctico',   hue: 18,  color: 'oklch(0.70 0.20 18)',  color2: 'oklch(0.48 0.20 18)',  activePlayers: 5118, emblem: 'valo' },
-  { id: 'apex', name: 'Apex Legends',       short: 'APX', tag: 'Battle Royale', hue: 28,  color: 'oklch(0.74 0.18 40)',  color2: 'oklch(0.50 0.20 28)',  activePlayers: 3942, emblem: 'apex' },
-  { id: 'rl',   name: 'Rocket League',      short: 'RL',  tag: 'Deportivo',     hue: 245, color: 'oklch(0.68 0.17 245)', color2: 'oklch(0.46 0.18 270)', activePlayers: 2810, emblem: 'rl'   },
-  { id: 'cr',   name: 'Clash Royale',       short: 'CR',  tag: 'Estrategia',    hue: 145, color: 'oklch(0.74 0.16 145)', color2: 'oklch(0.50 0.17 160)', activePlayers: 4321, emblem: 'cr'   },
+  { id: 'lol',  name: 'League of Legends', short: 'LoL', tag: 'MOBA',          hue: 195, color: 'oklch(0.72 0.16 195)', color2: 'oklch(0.52 0.18 235)', activePlayers: 8742, emblem: '/games/league-of-legends.webp' },
+  { id: 'cs2',  name: 'Counter-Strike 2',  short: 'CS2', tag: 'FPS Táctico',   hue: 32,  color: 'oklch(0.78 0.16 65)',  color2: 'oklch(0.55 0.18 35)',  activePlayers: 6210, emblem: '/games/CS2.jpg' },
+  { id: 'valo', name: 'Valorant',           short: 'VAL', tag: 'FPS Táctico',   hue: 18,  color: 'oklch(0.70 0.20 18)',  color2: 'oklch(0.48 0.20 18)',  activePlayers: 5118, emblem: '/games/Valorant.webp' },
+  { id: 'apex', name: 'Apex Legends',       short: 'APX', tag: 'Battle Royale', hue: 28,  color: 'oklch(0.74 0.18 40)',  color2: 'oklch(0.50 0.20 28)',  activePlayers: 3942, emblem: '/games/Apex_legends.jpg' },
+  { id: 'rl',   name: 'Rocket League',      short: 'RL',  tag: 'Deportivo',     hue: 245, color: 'oklch(0.68 0.17 245)', color2: 'oklch(0.46 0.18 270)', activePlayers: 2810, emblem: '/games/RocketLeague.webp' },
+  { id: 'cr',   name: 'Clash Royale',       short: 'CR',  tag: 'Estrategia',    hue: 145, color: 'oklch(0.74 0.16 145)', color2: 'oklch(0.50 0.17 160)', activePlayers: 4321, emblem: '/games/clashroyale.jpg' },
 ];
 
 export const GAME_BY_ID: Record<string, Game> = Object.fromEntries(GAMES.map(g => [g.id, g]));

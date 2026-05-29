@@ -11,6 +11,7 @@ export class AuthService {
   readonly user      = this._user.asReadonly();
   readonly tokens    = this._tokens.asReadonly();
   readonly isLoggedIn = computed(() => this._user() !== null);
+  readonly isAdmin    = computed(() => this._user()?.isAdmin === true);
 
   constructor(private supabase: SupabaseService, private toast: ToastService) {
     if (this.supabase.isConfigured) {
@@ -88,6 +89,7 @@ export class AuthService {
         email: '',
         initials: (data['nick'] as string).slice(0, 2).toUpperCase(),
         tokens: data['tokens'],
+        isAdmin: data['is_admin'] === true,
       });
       this._tokens.set(data['tokens']);
     }

@@ -1,8 +1,9 @@
-import { Component, inject, signal, computed } from '@angular/core';
+import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { GAMES, TOURNAMENTS, fmtNum, GAME_BY_ID } from '../../../data/mock';
+import { GAMES, fmtNum, GAME_BY_ID } from '../../../data/mock';
 import { RegistrationService } from '../../../core/registration/registration.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { TournamentAdminService, TournamentDto } from '../../../core/tournament-admin/tournament-admin.service';
 import { BadgeComponent } from '../../../shared/components/badge/badge.component';
 import { CoinComponent } from '../../../shared/components/coin/coin.component';
 import { EmblemComponent } from '../../../shared/components/emblem/emblem.component';
@@ -91,7 +92,7 @@ import { Tournament } from '../../../data/models';
               <div [style.background]="'linear-gradient(135deg,' + getGame(t.game).color2 + ',oklch(0.18 0.014 230))'"
                    style="position:relative;height:130px;overflow:hidden;border-bottom:1px solid var(--border-soft)">
                 <div aria-hidden style="position:absolute;inset:0;opacity:.35;background-image:radial-gradient(oklch(1 0 0 / .12) 1px, transparent 1px);background-size:16px 16px"></div>
-                <div style="position:absolute;right:-16px;top:-16px;opacity:.5;transform:rotate(-8deg)"><app-emblem [game]="t.game" [size]="140"/></div>
+                <div style="position:absolute;right:-16px;top:-16px;opacity:.7;transform:rotate(-8deg)"><app-emblem [game]="t.game" [size]="200"/></div>
                 <div style="position:absolute;top:12px;left:14px;display:flex;gap:6px">
                   <app-badge [tone]="t.startsAt <= now ? 'live' : 'default'">{{ t.startsAt <= now ? 'EN VIVO' : getGame(t.game).short }}</app-badge>
                   @if (t.featured) { <app-badge tone="gold">DESTACADO</app-badge> }
@@ -150,16 +151,19 @@ import { Tournament } from '../../../data/models';
     </div>
   `,
 })
-export class TournamentListComponent {
+export class TournamentListComponent implements OnInit {
   readonly reg  = inject(RegistrationService);
   readonly auth = inject(AuthService);
   private readonly route = inject(ActivatedRoute);
+  private readonly apiSvc = inject(TournamentAdminService);
 
   asInput = (e: Event) => e.target as HTMLInputElement;
 
-  readonly games = GAMES;
-  readonly now   = Date.now();
-  readonly fmtNum = fmtNum;
+  readonly games   = GAMES;
+  readonly now     = Date.now();
+  readonly fmtNum  = fmtNum;
+  readonly loading = signal(true);
+  private readonly allTournaments = signal<Tournament[]>([]);
 
   readonly gameFilter  = signal('all');
   readonly levelFilter = signal('all');
@@ -171,14 +175,35 @@ export class TournamentListComponent {
   readonly levelOpts = [{ v: 'all', l: 'Cualquier nivel' }, { v: 'Casual', l: 'Casual' }, { v: 'Intermedio', l: 'Intermedio' }, { v: 'Avanzado', l: 'Avanzado' }];
   readonly entryOpts = [{ v: 'all', l: 'Todos' }, { v: 'free', l: 'Gratis' }, { v: 'paid', l: 'Con entrada' }];
 
-  constructor() {
+  ngOnInit() {
     this.route.queryParams.subscribe(p => {
       if (p['game']) this.gameFilter.set(p['game']);
+      if (p['q']) this.query.set(p['q']);
+    });
+    this.apiSvc.getAll().subscribe({
+      next: ts => {
+        this.allTournaments.set(ts.map(t => ({
+          id: t.id!,
+          game: t.gameId,
+          name: t.name,
+          prize: t.prize,
+          entries: 0,
+          max: t.maxEntries,
+          format: t.format,
+          mode: t.mode,
+          level: (t.level ?? 'Casual') as Tournament['level'],
+          startsAt: t.startsAt ? new Date(t.startsAt).getTime() : Date.now(),
+          fee: t.fee,
+          featured: t.featured,
+        })));
+        this.loading.set(false);
+      },
+      error: () => this.loading.set(false),
     });
   }
 
   readonly filtered = computed(() => {
-    let list = [...TOURNAMENTS];
+    let list = [...this.allTournaments()];
     const g = this.gameFilter();
     const l = this.levelFilter();
     const e = this.entryFilter();
@@ -189,7 +214,7 @@ export class TournamentListComponent {
     if (l !== 'all') list = list.filter(t => t.level === l);
     if (e === 'free') list = list.filter(t => t.fee === 0);
     if (e === 'paid') list = list.filter(t => t.fee > 0);
-    if (q) list = list.filter(t => t.name.toLowerCase().includes(q) || GAME_BY_ID[t.game].name.toLowerCase().includes(q));
+    if (q) list = list.filter(t => t.name.toLowerCase().includes(q) || GAME_BY_ID[t.game]?.name.toLowerCase().includes(q));
     if (s === 'starting') list.sort((a, b) => a.startsAt - b.startsAt);
     if (s === 'prize')    list.sort((a, b) => b.prize - a.prize);
     if (s === 'spots')    list.sort((a, b) => (a.max - a.entries) - (b.max - b.entries));

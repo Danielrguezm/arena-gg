@@ -50,6 +50,7 @@ export interface UserProfile {
   tokens: number;
   bonus?: number;
   joinedAt?: number;
+  isAdmin?: boolean;
 }
 
 export interface RankPlayer {
