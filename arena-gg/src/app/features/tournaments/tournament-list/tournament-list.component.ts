@@ -187,7 +187,7 @@ export class TournamentListComponent implements OnInit {
           game: t.gameId,
           name: t.name,
           prize: t.prize,
-          entries: 0,
+          entries: t.entries ?? 0,
           max: t.maxEntries,
           format: t.format,
           mode: t.mode,

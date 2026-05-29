@@ -3,6 +3,7 @@ import { Tournament } from '../../data/models';
 import { AuthService } from '../auth/auth.service';
 import { ToastService } from '../toast/toast.service';
 import { SupabaseService } from '../supabase/supabase.service';
+import { TournamentAdminService } from '../tournament-admin/tournament-admin.service';
 
 @Injectable({ providedIn: 'root' })
 export class RegistrationService {
@@ -16,6 +17,7 @@ export class RegistrationService {
     private readonly authSvc:   AuthService,
     private readonly toast:     ToastService,
     private readonly supabase:  SupabaseService,
+    private readonly apiSvc:    TournamentAdminService,
   ) {}
 
   isRegistered(id: string) { return this._registered().has(id); }
@@ -28,15 +30,21 @@ export class RegistrationService {
     if (!t) return;
     this._pending.set(null);
 
-    if (this.supabase.isConfigured) {
+    const userId = this.authSvc.user()?.id;
+    if (userId) {
       try {
-        await this.supabase.client.rpc('register_for_tournament', { p_tournament_id: t.id });
+        await new Promise<void>((resolve, reject) => {
+          this.apiSvc.registerToTournament(t.id, userId).subscribe({
+            next: () => resolve(),
+            error: (e) => reject(e),
+          });
+        });
+        if (t.fee > 0) this.authSvc.spendTokens(t.fee);
       } catch (e: any) {
-        this.toast.push({ title: 'Error', body: e.message, tone: 'danger' });
+        this.toast.push({ title: 'Error', body: e?.error?.error ?? e.message, tone: 'danger' });
         return;
       }
     } else {
-      // Mock: validar saldo
       if (t.fee > 0 && this.authSvc.tokens() < t.fee) {
         this.toast.push({ title: 'Tokens insuficientes', body: `Te faltan ${t.fee - this.authSvc.tokens()} tokens`, tone: 'danger' });
         return;

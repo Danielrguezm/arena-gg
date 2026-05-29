@@ -141,7 +141,7 @@ arena-gg/
 │   │   ├── core/               # Servicios (auth, torneos, registro)
 │   │   ├── features/           # Páginas (home, torneos, tienda, admin...)
 │   │   ├── layout/             # Header
-│   │   └── shared/             # Componentes reutilizables (emblema, badge...)
+│   │   └── shared/             # Componentes reutilizables (emblema, badge, coin, confirm-modal, countdown, toast, pipes)
 │   ├── environments/           # Configuración de Supabase
 │   └── styles.css              # Estilos globales y temas
 │

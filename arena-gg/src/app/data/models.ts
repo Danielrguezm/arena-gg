@@ -8,6 +8,7 @@ export interface Game {
   color2: string;
   activePlayers: number;
   emblem: string;
+  imagePosition?: string;
 }
 
 export interface Tournament {

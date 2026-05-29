@@ -18,6 +18,7 @@ import { GAME_BY_ID } from '../../../data/mock';
                [style.width.px]="size()"
                [style.height.px]="size()"
                style="object-fit:cover;display:block;border-radius:inherit"
+               [style.object-position]="g()!.imagePosition ?? 'center'"
                (error)="imgError.set(true)"
                [alt]="g().name">
         } @else {

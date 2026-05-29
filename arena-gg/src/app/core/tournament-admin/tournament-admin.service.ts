@@ -16,6 +16,8 @@ export interface TournamentDto {
   status: string;
   featured: boolean;
   startsAt: string;
+  entries?: number;
+  registered?: boolean;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -23,12 +25,18 @@ export class TournamentAdminService {
   private readonly http = inject(HttpClient);
   private readonly api = 'http://localhost:8080/api/tournaments';
 
-  getAll(): Observable<TournamentDto[]> {
-    return this.http.get<TournamentDto[]>(this.api);
+  getAll(userId?: string): Observable<TournamentDto[]> {
+    const params = userId ? `?userId=${userId}` : '';
+    return this.http.get<TournamentDto[]>(`${this.api}${params}`);
   }
 
-  getById(id: string): Observable<TournamentDto> {
-    return this.http.get<TournamentDto>(`${this.api}/${id}`);
+  getById(id: string, userId?: string): Observable<TournamentDto> {
+    const params = userId ? `?userId=${userId}` : '';
+    return this.http.get<TournamentDto>(`${this.api}/${id}${params}`);
+  }
+
+  registerToTournament(tournamentId: string, userId: string): Observable<any> {
+    return this.http.post(`${this.api}/${tournamentId}/register`, { userId });
   }
 
   create(t: TournamentDto): Observable<TournamentDto> {

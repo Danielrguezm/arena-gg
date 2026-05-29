@@ -218,7 +218,7 @@ export class TournamentDetailComponent implements OnInit {
         game: dto.gameId,
         name: dto.name,
         prize: dto.prize,
-        entries: 0,
+        entries: dto.entries ?? 0,
         max: dto.maxEntries,
         format: dto.format,
         mode: dto.mode,
