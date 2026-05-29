@@ -176,7 +176,12 @@ export class AdminComponent implements OnInit {
   }
 
   save() {
-    if (!this.form.name) { this.error.set('El nombre es obligatorio'); return; }
+    if (!this.form.name.trim())       { this.error.set('El nombre es obligatorio'); return; }
+    if (!this.form.gameId)            { this.error.set('Selecciona un juego'); return; }
+    if (!this.form.startsAt)          { this.error.set('La fecha de inicio es obligatoria'); return; }
+    if (this.form.prize < 0)          { this.error.set('El premio no puede ser negativo'); return; }
+    if (this.form.fee < 0)            { this.error.set('La entrada no puede ser negativa'); return; }
+    if (this.form.maxEntries < 2)     { this.error.set('El mínimo de cupos es 2'); return; }
     this.saving.set(true);
     const obs = this.editing()
       ? this.svc.update(this.editingId, this.form)
