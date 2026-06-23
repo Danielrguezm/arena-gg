@@ -1,6 +1,7 @@
 import { Component, inject, signal, computed, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
-import { GAMES, REWARDS, fmtNum, GAME_BY_ID } from '../../data/mock';
+import { GAMES, STORE_ITEMS, fmtNum, GAME_BY_ID } from '../../data/mock';
+import { RARITY_META } from '../../data/models';
 import { AuthService } from '../../core/auth/auth.service';
 import { RegistrationService } from '../../core/registration/registration.service';
 import { TournamentAdminService } from '../../core/tournament-admin/tournament-admin.service';
@@ -187,14 +188,34 @@ import { Tournament } from '../../data/models';
           <a routerLink="/store" class="btn btn-ghost" style="padding:8px 14px;font-size:13px">Ver tienda →</a>
         </div>
         <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px">
-          @for (r of rewards; track r.id) {
-            <div style="background:var(--surface);border:1px solid var(--border-soft);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px">
-              <div style="height:140px;border-radius:10px;background:repeating-linear-gradient(135deg, oklch(0.20 0.014 230) 0 12px, oklch(0.22 0.014 230) 12px 24px);border:1px dashed var(--border);display:grid;place-items:center;color:var(--muted);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase">{{ r.tag }}</div>
-              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
-                <div><div style="font-weight:600;font-size:13.5px;color:var(--text)">{{ r.name }}</div><div style="font-size:11px;color:var(--muted);margin-top:2px">{{ r.tag }}</div></div>
-                <app-token-amount [value]="r.cost" [size]="13"/>
+          @for (item of storeTeaser; track item.id) {
+            <a routerLink="/store" class="holo-tint"
+               style="background:var(--surface);border:1px solid var(--border-soft);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;text-decoration:none;transition:transform .2s,border-color .2s"
+               (mouseenter)="cardHover($event, rarMeta(item.rarity).color, true)"
+               (mouseleave)="cardHover($event, rarMeta(item.rarity).color, false)">
+              <!-- Art slot -->
+              <div style="position:relative;height:160px;border-bottom:1px solid var(--border-soft);overflow:hidden;background:linear-gradient(135deg,oklch(0.18 0.02 260),oklch(0.22 0.02 230))">
+                <img [src]="item.image" [alt]="item.name"
+                     style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover;z-index:1">
+                <div style="position:absolute;inset:0;z-index:2;background:linear-gradient(to top,oklch(0 0 0/.35) 0%,transparent 60%)"></div>
+                <div style="position:absolute;top:10px;left:10px;z-index:3">
+                  <span [style.background]="rarMeta(item.rarity).color + '30'"
+                        [style.color]="rarMeta(item.rarity).color"
+                        [style.border-color]="rarMeta(item.rarity).color + '66'"
+                        style="display:inline-flex;padding:3px 8px;border-radius:999px;border:1px solid;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;backdrop-filter:blur(4px)">
+                    {{ rarMeta(item.rarity).label }}
+                  </span>
+                </div>
               </div>
-            </div>
+              <!-- Info -->
+              <div style="padding:14px 16px;display:flex;justify-content:space-between;align-items:center;gap:8px">
+                <div style="min-width:0">
+                  <div style="font-weight:600;font-size:13.5px;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ item.name }}</div>
+                  <div style="font-size:11px;color:var(--muted);margin-top:2px">{{ catLabel(item) }}</div>
+                </div>
+                <app-token-amount [value]="item.cost" [size]="13"/>
+              </div>
+            </a>
           }
         </div>
       </section>
@@ -212,9 +233,9 @@ export class HomeComponent implements OnInit {
   readonly reg     = inject(RegistrationService);
   private readonly apiSvc = inject(TournamentAdminService);
 
-  readonly games   = GAMES;
-  readonly rewards = REWARDS;
-  readonly fmtNum  = fmtNum;
+  readonly games       = GAMES;
+  readonly fmtNum      = fmtNum;
+  readonly storeTeaser = STORE_ITEMS.filter(i => !!i.image).slice(0, 4);
 
   private readonly allTournaments = signal<Tournament[]>([]);
 
@@ -257,8 +278,16 @@ export class HomeComponent implements OnInit {
     'Crown Rush · 8ª semifinal · zarpa_ vs vinky17',
   ];
 
-  getGame(id: string) { return GAME_BY_ID[id]; }
+  getGame(id?: string) { return id ? (GAME_BY_ID[id] ?? GAME_BY_ID['valo']) : GAME_BY_ID['valo']; }
+  rarMeta(r: string)   { return RARITY_META[r as keyof typeof RARITY_META]; }
   heroColor() { return this.hero()?.g?.color2 ?? 'oklch(0.18 0.014 230)'; }
+
+  catLabel(item: any): string {
+    if (item.game) return GAME_BY_ID[item.game]?.name ?? '';
+    if (item.cat === 'merch')    return 'Merchandising oficial';
+    if (item.cat === 'giftcard') return 'Gift card digital';
+    return 'Pase de batalla';
+  }
 
   cardHover(e: MouseEvent, color: string, enter: boolean) {
     const el = e.currentTarget as HTMLElement;

@@ -202,14 +202,16 @@ import { FmtNumPipe } from '../../../shared/pipes/fmt-num.pipe';
       } @else {
         <div style="text-align:center;padding:80px;color:var(--muted)">Torneo no encontrado.</div>
       }
+
     </div>
   `,
 })
 export class TournamentDetailComponent implements OnInit {
-  readonly reg    = inject(RegistrationService);
-  readonly auth   = inject(AuthService);
+  readonly reg  = inject(RegistrationService);
+  readonly auth = inject(AuthService);
   private readonly router  = inject(Router);
   private readonly apiSvc  = inject(TournamentAdminService);
+
 
   id = input<string>('');
 

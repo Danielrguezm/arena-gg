@@ -60,6 +60,21 @@ import { FmtNumPipe } from '../../pipes/fmt-num.pipe';
               </div>
             </div>
 
+            @if (reg.teamMembers().length > 1) {
+              <div style="padding:12px 14px;border-radius:10px;background:var(--bg-2);border:1px solid var(--border-soft);margin-bottom:14px">
+                <div style="font-size:9.5px;color:var(--muted);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px">Tu equipo ({{ reg.teamMembers().length }} jugadores)</div>
+                <div style="display:flex;flex-wrap:wrap;gap:6px">
+                  @for (nick of reg.teamMembers(); track nick; let i = $index) {
+                    <span style="display:inline-flex;align-items:center;gap:6px;padding:5px 10px;border-radius:8px;background:var(--accent-soft);border:1px solid color-mix(in oklch,var(--accent) 30%,transparent);font-size:12px;font-weight:600;color:var(--accent)">
+                      <span style="width:20px;height:20px;border-radius:5px;background:var(--accent);display:grid;place-items:center;color:var(--accent-ink);font-size:9px;font-weight:800;flex-shrink:0">{{ nick.slice(0,2).toUpperCase() }}</span>
+                      {{ nick }}
+                      @if (i === 0) { <span style="font-size:10px;opacity:.65">(tú)</span> }
+                    </span>
+                  }
+                </div>
+              </div>
+            }
+
             @if (t.fee > 0 && !canAfford(t.fee)) {
               <div style="padding:10px;border-radius:8px;background:oklch(0.68 0.21 25 / .12);color:var(--danger);font-size:12px;margin-bottom:14px">
                 No tienes tokens suficientes. Te faltan <strong class="mono">{{ (t.fee - auth.tokens()) | fmtNum }}</strong>.
