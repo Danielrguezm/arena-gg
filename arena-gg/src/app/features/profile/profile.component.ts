@@ -5,12 +5,11 @@ import { TOURNAMENTS, GAME_BY_ID } from '../../data/mock';
 import { BadgeComponent } from '../../shared/components/badge/badge.component';
 import { EmblemComponent } from '../../shared/components/emblem/emblem.component';
 import { TokenAmountComponent } from '../../shared/components/token-amount/token-amount.component';
-import { FmtNumPipe } from '../../shared/pipes/fmt-num.pipe';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [RouterLink, BadgeComponent, EmblemComponent, TokenAmountComponent, FmtNumPipe],
+  imports: [RouterLink, BadgeComponent, EmblemComponent, TokenAmountComponent],
   template: `
     <div class="page-enter" style="max-width:1320px;margin:0 auto;padding:28px 28px 80px">
       @if (!auth.isLoggedIn()) {

@@ -32,6 +32,7 @@ export interface StoreItem {
   name: string;
   cat: 'skin' | 'merch' | 'giftcard' | 'pass';
   game?: string;
+  image?: string;
   cost: number;
   rarity: 'common' | 'rare' | 'epic' | 'legendary';
 }
@@ -71,6 +72,26 @@ export interface Achievement {
   got: boolean;
   color: string;
   progress?: number;
+}
+
+export interface ClanMember {
+  id: string;
+  nick: string;
+  initials: string;
+  role: 'leader' | 'member';
+  games: string[];
+  joinedAt: number;
+  wins?: number;
+}
+
+export interface Clan {
+  id: string;
+  name: string;
+  tag: string;
+  description?: string;
+  leaderId: string;
+  members: ClanMember[];
+  createdAt: number;
 }
 
 export const RARITY_META: Record<StoreItem['rarity'], { label: string; color: string }> = {

@@ -5,7 +5,6 @@ import com.arena.gg.backend.model.Registration;
 import com.arena.gg.backend.model.Tournament;
 import com.arena.gg.backend.repository.RegistrationRepository;
 import com.arena.gg.backend.repository.TournamentRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,14 +14,15 @@ import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/tournaments")
-@CrossOrigin(origins = "*")
 public class TournamentController {
 
-    @Autowired
-    private TournamentRepository tournamentRepository;
+    private final TournamentRepository tournamentRepository;
+    private final RegistrationRepository registrationRepository;
 
-    @Autowired
-    private RegistrationRepository registrationRepository;
+    public TournamentController(TournamentRepository tournamentRepository, RegistrationRepository registrationRepository) {
+        this.tournamentRepository = tournamentRepository;
+        this.registrationRepository = registrationRepository;
+    }
 
     @GetMapping
     public List<TournamentResponse> getAll(@RequestParam(required = false) String userId) {

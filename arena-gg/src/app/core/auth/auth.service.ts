@@ -59,6 +59,20 @@ export class AuthService {
     if (error) throw error;
   }
 
+  async loginWithOAuth(provider: 'discord' | 'twitch'): Promise<void> {
+    if (this.supabase.isConfigured) {
+      const { error } = await this.supabase.client.auth.signInWithOAuth({
+        provider,
+        options: { redirectTo: window.location.origin + '/' },
+      });
+      if (error) throw error;
+      // Browser redirects away — no further action needed
+    } else {
+      const nick = provider === 'discord' ? 'discord_player' : 'twitch_streamer';
+      this.mockLogin(`${nick}@${provider}.mock`, nick, false);
+    }
+  }
+
   async logout() {
     if (this.supabase.isConfigured) {
       await this.supabase.client.auth.signOut();
@@ -82,6 +96,7 @@ export class AuthService {
   private async _loadProfile(userId: string) {
     const { data } = await this.supabase.client
       .from('profiles').select('*').eq('id', userId).single();
+
     if (data) {
       this._user.set({
         id: userId,
@@ -92,6 +107,29 @@ export class AuthService {
         isAdmin: data['is_admin'] === true,
       });
       this._tokens.set(data['tokens']);
+    } else {
+      // OAuth user without a profiles row — derive identity from provider metadata
+      const { data: { user } } = await this.supabase.client.auth.getUser();
+      if (!user) return;
+      const meta = user.user_metadata ?? {};
+      const nick: string =
+        meta['full_name'] ||
+        meta['name'] ||
+        meta['preferred_username'] ||
+        meta['user_name'] ||
+        user.email?.split('@')[0] ||
+        'player';
+      this._user.set({
+        id: userId,
+        nick,
+        email: user.email ?? '',
+        initials: nick.slice(0, 2).toUpperCase(),
+        tokens: 500,
+      });
+      this._tokens.set(500);
+      setTimeout(() =>
+        this.toast.push({ title: '¡Bienvenido!', body: '+500 tokens de regalo', tone: 'gold', duration: 5000 }), 800
+      );
     }
   }
 }

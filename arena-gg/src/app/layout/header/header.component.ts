@@ -36,6 +36,7 @@ import { FmtNumPipe } from '../../shared/pipes/fmt-num.pipe';
           <a routerLink="/store" routerLinkActive="nav-active" class="nav-item">Tienda</a>
           <a routerLink="/ranking" routerLinkActive="nav-active" class="nav-item">Ranking</a>
           @if (auth.isLoggedIn()) {
+            <a routerLink="/clanes" routerLinkActive="nav-active" class="nav-item">Clanes</a>
             <a routerLink="/profile" routerLinkActive="nav-active" class="nav-item">Perfil</a>
           }
           @if (auth.isAdmin()) {
@@ -94,10 +95,43 @@ import { FmtNumPipe } from '../../shared/pipes/fmt-num.pipe';
               <app-coin [size]="16"/>
               <span class="mono" style="color:var(--gold);font-weight:700;font-size:13.5px">{{ auth.tokens() | fmtNum }}</span>
             </div>
-            <a routerLink="/profile" style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg, oklch(0.55 0.16 280), oklch(0.40 0.18 320));display:grid;place-items:center;color:white;font-family:var(--font-display);font-weight:700;font-size:13px;border:1px solid var(--border);cursor:pointer;position:relative;text-decoration:none">
-              {{ auth.user()?.initials }}
-              <span style="position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:999px;background:var(--accent);border:2px solid var(--bg)"></span>
-            </a>
+
+            <!-- Avatar + menú desplegable -->
+            <div (document:click)="showProfileMenu.set(false)" style="position:relative">
+              <button (click)="$event.stopPropagation(); showProfileMenu.update(v => !v)"
+                      style="width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg, oklch(0.55 0.16 280), oklch(0.40 0.18 320));display:grid;place-items:center;color:white;font-family:var(--font-display);font-weight:700;font-size:13px;border:1px solid var(--border);cursor:pointer;position:relative;appearance:none;outline:0">
+                {{ auth.user()?.initials }}
+                <span style="position:absolute;right:-2px;bottom:-2px;width:11px;height:11px;border-radius:999px;background:var(--accent);border:2px solid var(--bg)"></span>
+              </button>
+
+              @if (showProfileMenu()) {
+                <div (click)="$event.stopPropagation()"
+                     style="position:absolute;top:calc(100% + 8px);right:0;width:210px;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;box-shadow:var(--shadow-2);overflow:hidden;z-index:200;animation:scaleIn .15s cubic-bezier(.22,.61,.36,1) both;transform-origin:top right">
+                  <!-- Info del usuario -->
+                  <div style="padding:12px 14px;border-bottom:1px solid var(--border-soft)">
+                    <div style="font-weight:700;font-size:13.5px;color:var(--text)">{{ auth.user()?.nick }}</div>
+                    <div style="font-size:11.5px;color:var(--muted);margin-top:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ auth.user()?.email }}</div>
+                  </div>
+                  <!-- Opciones -->
+                  <div style="padding:4px">
+                    <a routerLink="/profile" (click)="showProfileMenu.set(false)"
+                       style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;color:var(--text-2);font-size:13px;font-weight:500;text-decoration:none;transition:background .12s"
+                       (mouseenter)="asEl($event).style.background='var(--hover)'"
+                       (mouseleave)="asEl($event).style.background='transparent'">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                      Ver perfil
+                    </a>
+                    <button (click)="logout()"
+                            style="display:flex;align-items:center;gap:10px;padding:9px 10px;border-radius:8px;width:100%;text-align:left;appearance:none;border:0;background:transparent;color:var(--danger);font-size:13px;font-weight:500;font-family:var(--font-body);cursor:pointer;transition:background .12s"
+                            (mouseenter)="asEl($event).style.background='oklch(0.68 0.21 25 / .1)'"
+                            (mouseleave)="asEl($event).style.background='transparent'">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                      Cerrar sesión
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
           </div>
         } @else {
           <div style="display:flex;gap:8px">
@@ -134,6 +168,7 @@ export class HeaderComponent {
 
   private readonly query       = signal('');
   readonly showDropdown        = signal(false);
+  readonly showProfileMenu     = signal(false);
   private readonly allTournaments = signal<TournamentDto[]>([]);
 
   readonly suggestions = computed(() => {
@@ -160,6 +195,12 @@ export class HeaderComponent {
   goTo(t: TournamentDto) {
     this.showDropdown.set(false);
     this.router.navigate(['/tournaments', t.id]);
+  }
+
+  async logout(): Promise<void> {
+    this.showProfileMenu.set(false);
+    await this.auth.logout();
+    this.router.navigate(['/']);
   }
 
   asEl(e: Event) { return e.currentTarget as HTMLElement; }

@@ -22,10 +22,19 @@ export class RegistrationService {
 
   isRegistered(id: string) { return this._registered().has(id); }
 
-  requestRegistration(t: Tournament) { this._pending.set(t); }
-  cancelRegistration()               { this._pending.set(null); }
+  requestRegistration(t: Tournament) {
+    if (!this.authSvc.isLoggedIn()) {
+      this.toast.push({ title: 'Inicia sesión', body: 'Necesitas una cuenta para inscribirte en un torneo', tone: 'danger' });
+      return;
+    }
+    this._pending.set(t);
+  }
+
+  cancelRegistration() { this._pending.set(null); }
 
   async confirmRegistration() {
+    if (!this.authSvc.isLoggedIn()) { this._pending.set(null); return; }
+
     const t = this._pending();
     if (!t) return;
     this._pending.set(null);

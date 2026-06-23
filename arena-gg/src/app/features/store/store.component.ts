@@ -65,7 +65,9 @@ import { RouterLink } from '@angular/router';
             <div [style.background]="getGame(item.game) ? 'linear-gradient(135deg,' + getGame(item.game)!.color2 + ',oklch(0.20 0.014 230))' : 'linear-gradient(135deg,' + rarMeta(item.rarity).color + '40,oklch(0.20 0.014 230))'"
                  style="position:relative;height:170px;border-bottom:1px solid var(--border-soft)">
               <div aria-hidden style="position:absolute;inset:0;opacity:.35;background-image:radial-gradient(oklch(1 0 0 / .12) 1px, transparent 1px);background-size:14px 14px"></div>
-              @if (getGame(item.game)?.emblem?.startsWith('/')) {
+              @if (item.image) {
+                <img [src]="item.image" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" [alt]="item.name">
+              } @else if (getGame(item.game)?.emblem?.startsWith('/')) {
                 <img [src]="getGame(item.game)!.emblem" style="position:absolute;inset:0;width:100%;height:100%;object-fit:cover" [alt]="getGame(item.game)!.name">
               } @else if (getGame(item.game)) {
                 <div style="position:absolute;right:-12px;top:-12px;opacity:.55"><app-emblem [game]="item.game!" [size]="120"/></div>

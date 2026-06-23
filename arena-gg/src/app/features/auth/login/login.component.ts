@@ -54,12 +54,36 @@ import { BadgeComponent } from '../../../shared/components/badge/badge.component
 
           <!-- OAuth buttons -->
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:18px">
-            <button class="btn btn-ghost" style="justify-content:center;padding:11px 12px;font-size:13px">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21.582 6.186a2.506 2.506 0 0 0-1.768-1.768C18.254 4 12 4 12 4s-6.254 0-7.814.418A2.506 2.506 0 0 0 2.418 6.186C2 7.746 2 11 2 11s0 3.254.418 4.814a2.506 2.506 0 0 0 1.768 1.768C5.746 18 12 18 12 18s6.254 0 7.814-.418a2.506 2.506 0 0 0 1.768-1.768C22 14.254 22 11 22 11s0-3.254-.418-4.814zM9.75 14.25v-6.5L15.5 11l-5.75 3.25z"/></svg>
+            <!-- Discord -->
+            <button (click)="loginWithProvider('discord')"
+                    [disabled]="oauthLoading() !== null"
+                    class="btn btn-ghost"
+                    style="justify-content:center;gap:8px;padding:11px 12px;font-size:13px;color:oklch(0.80 0.14 278);border-color:oklch(0.60 0.22 278 / .35);transition:background .15s,border-color .15s"
+                    (mouseenter)="asEl($event).style.background='oklch(0.60 0.22 278 / .1)'"
+                    (mouseleave)="asEl($event).style.background='transparent'">
+              @if (oauthLoading() === 'discord') {
+                <span style="width:13px;height:13px;border-radius:999px;border:2px solid currentColor;border-top-color:transparent;display:inline-block;animation:coinSpin .8s linear infinite"></span>
+              } @else {
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 0 0-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 0 0-5.487 0 12.36 12.36 0 0 0-.617-1.23A.077.077 0 0 0 8.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 0 0-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 0 0 .031.055 20.03 20.03 0 0 0 5.993 2.98.078.078 0 0 0 .084-.026c.462-.62.874-1.275 1.226-1.963.021-.04.001-.088-.041-.104a13.201 13.201 0 0 1-1.872-.878.075.075 0 0 1-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 0 1 .078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 0 1 .079.009c.12.098.245.195.372.288a.075.075 0 0 1-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 0 0-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 0 0 .084.028 19.963 19.963 0 0 0 6.002-2.981.076.076 0 0 0 .032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 0 0-.031-.03z"/>
+                </svg>
+              }
               Discord
             </button>
-            <button class="btn btn-ghost" style="justify-content:center;padding:11px 12px;font-size:13px">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714v6.286h-3.43v-2.71l-1.4-2.05v4.76h-2.05v-6.286h2.05l1.4 2.05V4.714h3.43zm6.572 0v2.05h-3.43v.685h3.43v3.55h-5.482V8.95h3.432v-.685h-3.432v-3.55h5.482z"/></svg>
+            <!-- Twitch -->
+            <button (click)="loginWithProvider('twitch')"
+                    [disabled]="oauthLoading() !== null"
+                    class="btn btn-ghost"
+                    style="justify-content:center;gap:8px;padding:11px 12px;font-size:13px;color:oklch(0.78 0.18 295);border-color:oklch(0.60 0.25 295 / .35);transition:background .15s,border-color .15s"
+                    (mouseenter)="asEl($event).style.background='oklch(0.60 0.25 295 / .1)'"
+                    (mouseleave)="asEl($event).style.background='transparent'">
+              @if (oauthLoading() === 'twitch') {
+                <span style="width:13px;height:13px;border-radius:999px;border:2px solid currentColor;border-top-color:transparent;display:inline-block;animation:coinSpin .8s linear infinite"></span>
+              } @else {
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/>
+                </svg>
+              }
               Twitch
             </button>
           </div>
@@ -130,17 +154,33 @@ export class LoginComponent {
   private readonly supabase  = inject(SupabaseService);
   private readonly router    = inject(Router);
 
-  readonly mode      = signal<'login' | 'register'>('login');
-  readonly showPw    = signal(false);
-  readonly touched   = signal(false);
-  readonly submitting = signal(false);
-  readonly error     = signal('');
-  readonly agree     = signal(false);
+  readonly mode        = signal<'login' | 'register'>('login');
+  readonly showPw      = signal(false);
+  readonly touched     = signal(false);
+  readonly submitting  = signal(false);
+  readonly oauthLoading = signal<'discord' | 'twitch' | null>(null);
+  readonly error       = signal('');
+  readonly agree       = signal(false);
 
   nick      = '';
   email     = '';
   password  = '';
   password2 = '';
+
+  async loginWithProvider(provider: 'discord' | 'twitch'): Promise<void> {
+    this.oauthLoading.set(provider);
+    this.error.set('');
+    try {
+      await this.authSvc.loginWithOAuth(provider);
+      // Mock mode: navigate home. Real OAuth: browser redirects away automatically.
+      if (!this.supabase.isConfigured) this.router.navigate(['/']);
+    } catch (e: any) {
+      this.error.set(e?.message ?? `Error al conectar con ${provider}`);
+      this.oauthLoading.set(null);
+    }
+  }
+
+  asEl(e: MouseEvent) { return e.currentTarget as HTMLElement; }
 
   async submit() {
     this.touched.set(true);

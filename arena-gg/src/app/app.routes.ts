@@ -29,6 +29,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
   },
   {
+    path: 'clanes',
+    loadComponent: () => import('./features/clanes/clanes.component').then(m => m.ClanesComponent),
+    canActivate: [authGuard],
+  },
+  {
     path: 'login',
     loadComponent: () => import('./features/auth/login/login.component').then(m => m.LoginComponent),
   },

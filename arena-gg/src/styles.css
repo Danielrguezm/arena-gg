@@ -3,24 +3,25 @@
 @tailwind utilities;
 
 /* ── Variables de diseño ──────────────────────────────────────── */
-:root, [data-theme="dark"] {
-  --bg:          oklch(0.12 0.014 230);
-  --bg-2:        oklch(0.155 0.016 230);
-  --surface:     oklch(0.18 0.014 230);
-  --elevated:    oklch(0.22 0.018 230);
-  --hover:       oklch(0.25 0.018 230);
-  --border:      oklch(0.30 0.020 230);
-  --border-soft: oklch(0.22 0.016 230);
-  --text:        oklch(0.97 0.004 230);
-  --text-2:      oklch(0.80 0.010 230);
-  --muted:       oklch(0.55 0.012 230);
-  --dim:         oklch(0.38 0.010 230);
-  --danger:      oklch(0.68 0.21 25);
-  --info:        oklch(0.74 0.14 235);
-  --gold:        oklch(0.84 0.14 86);
-  --gold-soft:   oklch(0.84 0.14 86 / .12);
-  --shadow-1:    0 2px 8px oklch(0 0 0 / .25);
-  --shadow-2:    0 8px 24px oklch(0 0 0 / .40);
+/* Dark theme (default) */
+[data-theme="dark"], :root:not([data-theme="light"]) {
+  --bg:          oklch(0.18 0.008 30);
+  --bg-2:        oklch(0.16 0.010 30);
+  --surface:     oklch(0.14 0.012 30);
+  --elevated:    oklch(0.12 0.014 30);
+  --hover:       oklch(0.20 0.016 30);
+  --border:      oklch(0.40 0.040 25);
+  --border-soft: oklch(0.16 0.010 30);
+  --text:        oklch(0.98 0.008 30);
+  --text-2:      oklch(0.82 0.016 30);
+  --muted:       oklch(0.58 0.020 30);
+  --dim:         oklch(0.40 0.015 30);
+  --danger:      oklch(0.70 0.24 25);
+  --info:        oklch(0.76 0.18 235);
+  --gold:        oklch(0.86 0.18 86);
+  --gold-soft:   oklch(0.86 0.18 86 / .15);
+  --shadow-1:    0 2px 8px oklch(0 0 0 / .35);
+  --shadow-2:    0 8px 24px oklch(0 0 0 / .50);
   --radius:      14px;
   --radius-lg:   22px;
   --font-body:   'Inter', system-ui, sans-serif;
@@ -28,30 +29,33 @@
   --font-mono:   'JetBrains Mono', 'Fira Code', monospace;
 }
 
-/* Paleta cyan (por defecto) */
-:root, [data-palette="cyan"] {
-  --accent:      oklch(0.74 0.18 195);
-  --accent-soft: oklch(0.74 0.18 195 / .12);
-  --accent-ink:  oklch(0.08 0.02 195);
-  --secondary:   oklch(0.65 0.20 280);
+/* Paleta rojo (modo oscuro) */
+[data-theme="dark"], :root:not([data-theme="light"]) {
+  --accent:      oklch(0.72 0.20 30);
+  --accent-soft: oklch(0.72 0.20 30 / .15);
+  --accent-ink:  oklch(0.06 0.03 30);
+  --secondary:   oklch(0.68 0.16 20);
 }
-[data-palette="vs"] {
-  --accent:      oklch(0.70 0.20 240);
-  --accent-soft: oklch(0.70 0.20 240 / .12);
-  --accent-ink:  oklch(0.08 0.02 240);
-  --secondary:   oklch(0.65 0.22 20);
+[data-theme="dark"] [data-palette="vs"],
+:root:not([data-theme="light"]) [data-palette="vs"] {
+  --accent:      oklch(0.72 0.24 240);
+  --accent-soft: oklch(0.72 0.24 240 / .15);
+  --accent-ink:  oklch(0.06 0.03 240);
+  --secondary:   oklch(0.68 0.26 20);
 }
-[data-palette="magenta"] {
-  --accent:      oklch(0.68 0.25 340);
-  --accent-soft: oklch(0.68 0.25 340 / .12);
-  --accent-ink:  oklch(0.08 0.03 340);
-  --secondary:   oklch(0.60 0.22 300);
+[data-theme="dark"] [data-palette="magenta"],
+:root:not([data-theme="light"]) [data-palette="magenta"] {
+  --accent:      oklch(0.70 0.28 340);
+  --accent-soft: oklch(0.70 0.28 340 / .15);
+  --accent-ink:  oklch(0.06 0.03 340);
+  --secondary:   oklch(0.63 0.26 300);
 }
-[data-palette="emerald"] {
-  --accent:      oklch(0.74 0.18 158);
-  --accent-soft: oklch(0.74 0.18 158 / .12);
-  --accent-ink:  oklch(0.08 0.02 158);
-  --secondary:   oklch(0.65 0.18 260);
+[data-theme="dark"] [data-palette="emerald"],
+:root:not([data-theme="light"]) [data-palette="emerald"] {
+  --accent:      oklch(0.76 0.22 158);
+  --accent-soft: oklch(0.76 0.22 158 / .15);
+  --accent-ink:  oklch(0.06 0.03 158);
+  --secondary:   oklch(0.68 0.22 260);
 }
 
 /* Tema claro — cyber neon */
@@ -69,6 +73,11 @@
   --dim:         oklch(0.50 0.10 210);
   --shadow-1:    0 2px 12px oklch(0.65 0.25 200 / .35);
   --shadow-2:    0 8px 32px oklch(0.65 0.25 200 / .50);
+  /* Acentos azul solo en modo claro */
+  --accent:      oklch(0.72 0.24 240);
+  --accent-soft: oklch(0.72 0.24 240 / .15);
+  --accent-ink:  oklch(0.06 0.03 240);
+  --secondary:   oklch(0.68 0.26 240);
 }
 
 /* ── Base ────────────────────────────────────────────────────── */

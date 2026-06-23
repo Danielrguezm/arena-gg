@@ -2,7 +2,6 @@ import { Component, inject } from '@angular/core';
 import { RegistrationService } from '../../../core/registration/registration.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { GAME_BY_ID } from '../../../data/mock';
-import { BadgeComponent } from '../badge/badge.component';
 import { CountdownComponent } from '../countdown/countdown.component';
 import { TokenAmountComponent } from '../token-amount/token-amount.component';
 import { FmtNumPipe } from '../../pipes/fmt-num.pipe';
@@ -10,7 +9,7 @@ import { FmtNumPipe } from '../../pipes/fmt-num.pipe';
 @Component({
   selector: 'app-confirm-modal',
   standalone: true,
-  imports: [BadgeComponent, CountdownComponent, TokenAmountComponent, FmtNumPipe],
+  imports: [CountdownComponent, TokenAmountComponent, FmtNumPipe],
   template: `
     @if (reg.pending(); as t) {
       <div (click)="reg.cancelRegistration()"

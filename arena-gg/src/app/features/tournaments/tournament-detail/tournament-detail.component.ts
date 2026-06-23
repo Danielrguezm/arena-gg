@@ -162,6 +162,12 @@ import { FmtNumPipe } from '../../../shared/pipes/fmt-num.pipe';
 
               @if (isFull(t)) {
                 <button class="btn btn-ghost" disabled style="width:100%;justify-content:center;opacity:.6">Torneo lleno</button>
+              } @else if (!auth.isLoggedIn()) {
+                <a routerLink="/login" style="display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 18px;font-size:14px;font-weight:700;background:var(--surface);border:1px solid var(--border);border-radius:10px;color:var(--text-2);text-decoration:none;transition:border-color .15s,color .15s"
+                   (mouseenter)="asLoginBtn($event,true)" (mouseleave)="asLoginBtn($event,false)">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  Inicia sesión para inscribirte
+                </a>
               } @else if (reg.isRegistered(t.id)) {
                 <button class="btn" style="width:100%;justify-content:center;background:var(--accent-soft);color:var(--accent);border:1px solid color-mix(in oklch, var(--accent) 35%, transparent)">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="m5 13 4 4L19 7"/></svg>
@@ -269,5 +275,14 @@ export class TournamentDetailComponent implements OnInit {
     }));
   }
 
-  register(t: any) { this.reg.requestRegistration(t); }
+  register(t: any) {
+    if (!this.auth.isLoggedIn()) { this.router.navigate(['/login']); return; }
+    this.reg.requestRegistration(t);
+  }
+
+  asLoginBtn(e: MouseEvent, enter: boolean) {
+    const el = e.currentTarget as HTMLElement;
+    el.style.borderColor = enter ? 'var(--accent)' : 'var(--border)';
+    el.style.color = enter ? 'var(--accent)' : 'var(--text-2)';
+  }
 }
